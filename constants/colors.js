@@ -1,0 +1,6 @@
+export const COLORS={
+    primary:'#D72638',
+    accent: '#140F2D'
+};
+
+//SE PUEDE CREAR OTRO OBJETO CON EXPORT O TENER OTRA PALETA EN OTRO ARCHIVO
