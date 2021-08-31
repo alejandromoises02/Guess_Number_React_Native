@@ -1,30 +1,63 @@
-import React, {useState} from 'react'
-import { View, Text, StyleSheet, Button } from 'react-native'
+import React, {useState, useRef, useEffect} from 'react'
+import { View, Text, StyleSheet, Button, Dimensions, Alert } from 'react-native'
 import Card from '../componentes/Card';
 import NumberContainer from '../componentes/NumberContainer';
 
-const generaterandomBetween = (min,max,exclude) =>{
+const generateRandomBetween = (min, max, exclude) => {
+    
     min = Math.ceil(min)
     max = Math.floor(max)
+    const random = Math.floor(Math.random() * (max - min) + min)
+    if (random === exclude) {
+      return generateRandomBetween(min, max, exclude)
+    } else {
+      return random;
+    }
+  }
 
-    const random =Math.floor(Math.random() * (max-min) +min);
-    if(random === exclude)
-        return generaterandomBetween(min,max,exclude);
-    else
-        return random
-}
 
-const GameScreen = props => {
+const GameScreen = ({ onGameOver, userOption }) => {
+    const [currentGuess, setCurrentGuess] = useState(generateRandomBetween(1, 100, userOption));
+    const [rounds, setRounds] = useState(0);
 
-    const [currentGuess, setCurrentGuess] = useState(generaterandomBetween(1,100,props.userOption));
-    
+    const currentLow = useRef(1);
+    const currentHigh = useRef(100);
+
+
+    useEffect(() => {
+        if(currentGuess === userOption) onGameOver(rounds)
+    }, [currentGuess, userOption, onGameOver]);
+
+    const handleNextGuess = (direction) => () =>{
+        if(
+            (direction==='lower' && currentGuess<userOption) ||
+            (direction==='greater' && currentGuess>userOption)){
+                Alert.alert(
+                    "Incorrecto",
+                    "Los parametros no coinciden",
+                    [{text:'Continuar', style : 'cancel'}]
+                );
+                return;
+            }
+
+        if(direction === 'lower'){
+            currentHigh.current = currentGuess;
+        }else{
+            currentLow.current = currentGuess;
+        }
+
+        const nextNumber = generateRandomBetween(currentLow.current, currentHigh.current, currentGuess);
+        setCurrentGuess(nextNumber);
+        setRounds(rounds + 1);
+    }
+
     return(
         <View style={styles.screen}>
             <Text>La suposicion del oponente</Text>
             <NumberContainer>{currentGuess}</NumberContainer>
             <Card style={styles.buttonContainer}>
-                <Button title='MENOR' OnPress={()=>{}} />
-                <Button title='MAYOR' OnPress={()=>{}} />
+                <Button title="MENOR" onPress={handleNextGuess('lower')} />
+                <Button title="MAYOR" onPress={handleNextGuess('greater')} />
             </Card>
         </View>
     )
@@ -43,6 +76,7 @@ const styles = StyleSheet.create({
         width: 300,
         maxWidth: '80%',
         marginBottom: 10,
+        marginTop: Dimensions.get('window').height >600? 20 : 10,
     }
 })
   
